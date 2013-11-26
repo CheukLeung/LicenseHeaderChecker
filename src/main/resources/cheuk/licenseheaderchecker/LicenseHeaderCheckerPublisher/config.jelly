@@ -9,8 +9,12 @@
     Creates a text field that shows the value of the "name" property.
     When submitted, it will be passed to the corresponding constructor parameter.
   -->
-    <f:entry title="Directory to the reek results" field="licenseHeaderCheckerDir">
+    <f:entry title="Directory to the source" field="sourceDir">
         <f:textbox default="./"/>
-        Please specify the directory of the reek results in .yaml format.
+        Please specify the directory of source files to be checked
+    </f:entry> 
+    <f:entry title="Directory to the license header templates" field="licenseDir">
+        <f:textbox default="./"/>
+        Please specify the directory of the license header templates, if you have more than one templates, put them all in one directory and specify the directory instead
     </f:entry> 
 </j:jelly>

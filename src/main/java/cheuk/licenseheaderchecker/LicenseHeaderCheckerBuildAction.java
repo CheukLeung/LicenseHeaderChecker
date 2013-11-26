@@ -5,7 +5,6 @@
 package cheuk.licenseheaderchecker;
 
 import cheuk.licenseheaderchecker.resource.DataGraph;
-import cheuk.licenseheaderchecker.resource.SourceFile;
 import hudson.model.AbstractBuild;
 import hudson.model.Action;
 import hudson.model.Actionable;
@@ -61,7 +60,7 @@ public class LicenseHeaderCheckerBuildAction extends Actionable implements Actio
         for (LicenseHeaderCheckerBuildAction a = this; a != null; a = a.getPreviousResult()){
             ChartUtil.NumberOnlyBuildLabel label = new ChartUtil.NumberOnlyBuildLabel(a.owner);
             LicenseHeaderCheckerResult aResult = a.getResult();
-            dsb.add(aResult.getLicenseHeaderCheckerReports().size(), "Number of warnings", label);
+            dsb.add(aResult.getNumberOfUnmatchedFiles(), "Percentage of files having license header", label);
         }
         
         return dsb;
@@ -79,40 +78,10 @@ public class LicenseHeaderCheckerBuildAction extends Actionable implements Actio
         }
         
         Graph g = new DataGraph(getOwner(), getDataSetBuilder().build(),
-                "Number of warnings", 500, 200);
+                "Percentage of files having license header", 500, 200);
         g.doPng(req, rsp);
     }
     
-    private DataSetBuilder<String, ChartUtil.NumberOnlyBuildLabel> getSourceDataSetBuilder(String fileName){
-        DataSetBuilder<String, ChartUtil.NumberOnlyBuildLabel> dsb =
-                new DataSetBuilder<String, ChartUtil.NumberOnlyBuildLabel>();
-        
-        for (LicenseHeaderCheckerBuildAction a = this; a != null; a = a.getPreviousResult()){
-            ChartUtil.NumberOnlyBuildLabel label = new ChartUtil.NumberOnlyBuildLabel(a.owner);
-            if (a.getResult().getSourceFileHash().containsKey(fileName)){
-                SourceFile srcFile = a.getResult().getSourceFileHash().get(fileName);
-                dsb.add(srcFile.getNumberOfWarning(), "Number of warnings", label);
-            }
-        }
-        
-        return dsb;
-    }
-    
-    public void doSourceGraph(String fileName, StaplerRequest req, StaplerResponse rsp) throws IOException {
-        if (ChartUtil.awtProblemCause != null){
-            rsp.sendRedirect2(req.getContextPath() + "/images/headless.png");
-            return;
-        }
-        Calendar timestamp = getOwner().getTimestamp();
-        
-        if (req.checkIfModified(timestamp, rsp)){
-            return;
-        }
-        
-        Graph g = new DataGraph(getOwner(), getSourceDataSetBuilder(fileName).build(),
-                "Number of warnings", 500, 200);
-        g.doPng(req, rsp);
-    }
     
     public LicenseHeaderCheckerBuildAction getPreviousResult(){
         return getPreviousResult(owner);

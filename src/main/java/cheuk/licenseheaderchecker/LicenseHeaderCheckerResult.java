@@ -4,8 +4,7 @@
  */
 package cheuk.licenseheaderchecker;
 
-import cheuk.licenseheaderchecker.resource.LicenseHeaderCheckerReport;
-import cheuk.licenseheaderchecker.resource.SourceFile;
+import cheuk.licenseheaderchecker.resource.LicenseHeaderCheckerFile;
 import hudson.model.AbstractBuild;
 import hudson.model.Item;
 import hudson.util.ChartUtil;
@@ -13,6 +12,7 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.util.Calendar;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
@@ -25,13 +25,14 @@ public class LicenseHeaderCheckerResult implements Serializable{
     private static final long serialVersionUID = 1L;
     
     private AbstractBuild<?, ?> owner;
-    private List<LicenseHeaderCheckerReport> licenseHeaderCheckerReports;
-    private HashMap<String, SourceFile> sourceFileHash;
-            
-    public LicenseHeaderCheckerResult(AbstractBuild <?, ?> owner, List<LicenseHeaderCheckerReport> licenseHeaderCheckerReports, HashMap<String, SourceFile> sourceFileHash){
+    private List<LicenseHeaderCheckerFile> licenseTemplates;
+    private List<LicenseHeaderCheckerFile> sourceFiles;
+
+    public LicenseHeaderCheckerResult(AbstractBuild owner, List<LicenseHeaderCheckerFile> licenseTemplates, List<LicenseHeaderCheckerFile> sourceFiles) {
         this.owner = owner;
-        this.licenseHeaderCheckerReports = licenseHeaderCheckerReports;
-        this.sourceFileHash = sourceFileHash;
+        this.licenseTemplates = licenseTemplates;
+        this.sourceFiles = sourceFiles;
+        
     }
     
     public LicenseHeaderCheckerResult getPreviousresult(){
@@ -56,29 +57,24 @@ public class LicenseHeaderCheckerResult implements Serializable{
         return owner;
     }
     
-    public List<LicenseHeaderCheckerReport> getLicenseHeaderCheckerReports(){
-        return licenseHeaderCheckerReports;
+    public List<LicenseHeaderCheckerFile> getLicenseTemplates(){
+        return licenseTemplates;
     }
     
-    public HashMap<String, SourceFile> getSourceFileHash(){
-        return sourceFileHash;
+    public List<LicenseHeaderCheckerFile> getSourceFiles(){
+        return sourceFiles;
     }
     
-    @SuppressWarnings("unused")
-    public Object getDynamic(final String link, final StaplerRequest request,
-                            final StaplerResponse response) throws IOException{
-        String linkModified = link.replaceAll("=", "/");
-
-        if (linkModified.startsWith("source.")){
-            if (!owner.getProject().getACL().hasPermission(Item.WORKSPACE)){
-                response.sendRedirect2("nosourcepermission");
-                return null;
-            }
-            if (sourceFileHash.containsKey(linkModified.replaceFirst("source.", ""))){
-                return sourceFileHash.get(linkModified.replaceFirst("source.", ""));
+    public double getNumberOfUnmatchedFiles() {
+        int i = 0;
+        Iterator<LicenseHeaderCheckerFile> it = sourceFiles.iterator();
+        while (it.hasNext())
+        {
+            if (it.next().isMatched()){
+                i++;
             }
         }
-        return null;
+        return i / LicenseHeaderCheckerFile.getSize();
     }
     
     public void doGraph(StaplerRequest req, StaplerResponse rsp) throws IOException {
@@ -99,4 +95,5 @@ public class LicenseHeaderCheckerResult implements Serializable{
             buildAction.doGraph(req, rsp);
         }
     }
+
 }

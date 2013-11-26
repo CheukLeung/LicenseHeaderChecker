@@ -9,7 +9,6 @@ and open the template in the editor.
 <j:jelly xmlns:j="jelly:core"  xmlns:d="jelly:define" xmlns:i="jelly:fmt" xmlns:l="/lib/layout" xmlns:t="/lib/hudson">
     <t:summary icon="clipboard.png">
         <div><a href="LicenseHeaderCheckerResult/">${%License Header Checker Results}</a></div>
-        <j:set var="licenseHeaderCheckerReports" value="${it.target.licenseHeaderCheckerReports}" />
-        ${licenseHeaderCheckerReports.size()} warning(s) are found.
+        ${it.target.sourceFiles.get(0).getNumberOfUnmatchedFiles()} warning(s) are found.
     </t:summary>
 </j:jelly>

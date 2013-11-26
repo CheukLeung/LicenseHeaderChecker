@@ -13,11 +13,8 @@ import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.BuildStepMonitor;
 import hudson.tasks.Publisher;
 import org.kohsuke.stapler.DataBoundConstructor;
-import cheuk.licenseheaderchecker.resource.LicenseHeaderCheckerReport;
-import cheuk.licenseheaderchecker.resource.SourceFile;
-import hudson.FilePath;
+import cheuk.licenseheaderchecker.resource.LicenseHeaderCheckerFile;
 import hudson.model.Action;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
@@ -27,12 +24,13 @@ import java.util.List;
  */
 public class LicenseHeaderCheckerPublisher extends Publisher{
     
-    public String licenseHeaderCheckerDir;
-    HashMap<String, SourceFile> sourceFileHash;
+    public String sourceDir;
+    public String licenseDir;
     
     @DataBoundConstructor
-    public LicenseHeaderCheckerPublisher(String licenseHeaderCheckerDir) {
-        this.licenseHeaderCheckerDir = licenseHeaderCheckerDir;
+    public LicenseHeaderCheckerPublisher(String sourceDir, String licenseDir) {
+        this.sourceDir = sourceDir;
+        this.licenseDir = licenseDir;
     }
     
     public BuildStepMonitor getRequiredMonitorService() {
@@ -44,13 +42,19 @@ public class LicenseHeaderCheckerPublisher extends Publisher{
     @SuppressWarnings("null")
     public boolean perform (AbstractBuild build, Launcher launcher, BuildListener listener){
         listener.getLogger().println("Running License Header Checker  result reporter");
-        List<LicenseHeaderCheckerReport> licenseHeaderCheckerReports = LicenseHeaderCheckerParser.doParse(build.getWorkspace().child(licenseHeaderCheckerDir));
-        listener.getLogger().println("" + LicenseHeaderCheckerReport.getSize() + " warning(s) are found.");
+        LicenseHeaderCheckerFile.initialize();
+        List<LicenseHeaderCheckerFile> licenseTemplates = LicenseHeaderCheckerParser.doParse(build.getWorkspace(), build.getWorkspace().child(licenseDir));
+        List<LicenseHeaderCheckerFile> sourceFiles = LicenseHeaderCheckerParser.doParse(build.getWorkspace(), build.getWorkspace().child(sourceDir));
+        Iterator<LicenseHeaderCheckerFile> it = sourceFiles.iterator();
+        while (it.hasNext()){
+            LicenseHeaderCheckerFile currentFile = it.next();
+            currentFile.setMatchedTemplateID(LicenseHeaderCheckerParser.checkAgainst(currentFile, licenseTemplates));
+            if (currentFile.getMatchedTemplateID() == -1){
+                listener.getLogger().println(currentFile.getFilename() + "has no license header!");
+            }
+        }
         
-        sourceFileHash = new HashMap<String, SourceFile>();
-        setSourceFileHash(build, licenseHeaderCheckerReports);
-        
-        final LicenseHeaderCheckerResult result = new LicenseHeaderCheckerResult(build, licenseHeaderCheckerReports, sourceFileHash);
+        final LicenseHeaderCheckerResult result = new LicenseHeaderCheckerResult(build, licenseTemplates, sourceFiles);
         final LicenseHeaderCheckerBuildAction action = LicenseHeaderCheckerBuildAction.load(build, result);
         build.getActions().add(action);
         
@@ -65,24 +69,6 @@ public class LicenseHeaderCheckerPublisher extends Publisher{
     @Override
     public LicenseHeaderCheckerPublisher.DescriptorImpl getDescriptor(){
         return (LicenseHeaderCheckerPublisher.DescriptorImpl)super.getDescriptor();
-    }
-
-    private void setSourceFileHash(AbstractBuild<?, ?> build, List<LicenseHeaderCheckerReport> licenseHeaderCheckerReports) {
-        Iterator<LicenseHeaderCheckerReport> it = licenseHeaderCheckerReports.iterator();
-        while (it.hasNext()){
-            LicenseHeaderCheckerReport report = it.next();
-            SourceFile sourceFile;
-            String fileName = report.getSource();
-            if (sourceFileHash.containsKey(fileName)){
-                sourceFile = sourceFileHash.get(fileName);
-            }
-            else {
-                sourceFile = new SourceFile(build, fileName);
-                sourceFileHash.put(fileName, sourceFile);
-            }
-            sourceFile.addReport(report);
-            
-        }
     }
 
     @Extension

@@ -5,7 +5,7 @@
 package cheuk.licenseheaderchecker;
 
 import cheuk.licenseheaderchecker.resource.Common;
-import cheuk.licenseheaderchecker.resource.LicenseHeaderCheckerReport;
+import cheuk.licenseheaderchecker.resource.LicenseHeaderCheckerFile;
 import hudson.FilePath;
 import java.io.BufferedReader;
 import java.io.File;
@@ -24,46 +24,39 @@ import java.util.logging.Logger;
  * @author cheuk
  */
 public class LicenseHeaderCheckerParser {
-    static public List<LicenseHeaderCheckerReport> doParse(FilePath root){
+
+    public static List<LicenseHeaderCheckerFile> doParse(FilePath workspace, FilePath root) {
         List<FilePath> targetFile = Common.locateFiles(root);
         if (targetFile.isEmpty()){
             return null;
         }
         
-        List<LicenseHeaderCheckerReport> licenseHeaderCheckerReports = new ArrayList();
+        List<LicenseHeaderCheckerFile> licenseHeaderCheckerFiles = new ArrayList();
         Iterator<FilePath> it = targetFile.iterator();
         while (it.hasNext()){
             FilePath element = it.next();
-            licenseHeaderCheckerReports.addAll(parseSmell(element));
+            LicenseHeaderCheckerFile currentFile = parseFile(element);
+            currentFile.setFilename(element.getRemote().substring(workspace.getRemote().length()+1));
+            licenseHeaderCheckerFiles.add(currentFile);
         }
-        return licenseHeaderCheckerReports;
+        return licenseHeaderCheckerFiles;
     }
 
-    static private List<LicenseHeaderCheckerReport> parseSmell(FilePath filePath) {
+    private static LicenseHeaderCheckerFile parseFile(FilePath filePath) {
         try {
             String fileName = filePath.getRemote();
             File file = new File (fileName);
             BufferedReader br;
             br = new BufferedReader(new FileReader(file));
             String line = br.readLine();
-            List <LicenseHeaderCheckerReport> licenseHeaderCheckerReports = new ArrayList();
-
+            LicenseHeaderCheckerFile currentFile = new LicenseHeaderCheckerFile();
             while (line != null) {
-                if (line.trim().matches("- !ruby/object:Reek::SmellWarning")) {
-                    LicenseHeaderCheckerReport currentReport = new LicenseHeaderCheckerReport();
-                    line = br.readLine();
-                    while (line != null && !line.matches("- !ruby/object:Reek::SmellWarning")) {
-                        setCurrentReportByLine(currentReport, line);
-                        line = br.readLine();
-                    }
-                    licenseHeaderCheckerReports.add(currentReport);
-                }
-                else {
-                    line = br.readLine();
-                }
+                currentFile.addRawLine(line);
+                currentFile.addLine(line.trim());
+                line = br.readLine();
             }
             br.close();
-            return licenseHeaderCheckerReports;
+            return currentFile;
         } catch (FileNotFoundException ex) {
             Logger.getLogger(LicenseHeaderCheckerParser.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IOException ex) {
@@ -72,52 +65,34 @@ public class LicenseHeaderCheckerParser {
         return null;
     }
     
-    
-    private static void setCurrentReportByLine(LicenseHeaderCheckerReport report, String line) {
-        if (line.trim().matches("source:(.*)")){
-            report.setSource(line.replaceFirst("source:", "").trim());
-        }
-        if (line.trim().matches("- ([0-9]+)")){
-            report.addLine(Integer.parseInt(line.replaceFirst("-", "").trim()));
-        }
-        if (line.trim().matches("context:(.*)")){
-            report.setContext(line.replaceFirst("context:", "").trim());
-        }
-        if (line.trim().matches("class:(.*)")){
-            report.setSmellClass(line.replaceFirst("class:", "").trim());
-        }
-        if (line.trim().matches("subclass:(.*)")){
-            report.setSubClass(line.replaceFirst("subclass:", "").trim());
-        }
-        if (line.trim().matches("message:(.*)")){
-            report.setMessage(line.replaceFirst("message:", "").trim());
-        }
-        if (line.trim().matches("occurrences:(.*)")){
-            report.setOccurrences(Integer.parseInt(line.replaceFirst("occurrences:", "").trim()));
-        }
-        if (line.trim().matches("depth:(.*)")){
-            report.setDepth(Integer.parseInt(line.replaceFirst("depth:", "").trim()));
-        }
-        if (line.trim().matches("call:(.*)")){
-            report.setCall(line.replaceFirst("call:", "").trim());
-        }
-        if (line.trim().matches("method_name:(.*)")){
-            report.setMethodName(line.replaceFirst("method_name:", "").trim());
-        }
-        if (line.trim().matches("variable_name:(.*)")){
-            report.setVariableName(line.replaceFirst("variable_name:", "").trim());
-        }
-        if (line.trim().matches("parameter:(.*)")){
-            report.setParameter(line.replaceFirst("parameter:", "").trim());
-        }
-        if (line.trim().matches("is_active:( *)true( *)")){
-            report.setIsActive(true);
-        }
-        if (line.trim().matches("is_active:( *)false( *)")){
-            report.setIsActive(false);
-        }
-        
-        
+    public static int checkAgainst(LicenseHeaderCheckerFile target, List<LicenseHeaderCheckerFile> template) {
+        Iterator<LicenseHeaderCheckerFile> templateIt = template.iterator();
+        while (templateIt.hasNext())
+        {
+            LicenseHeaderCheckerFile currentTemplate = templateIt.next();
+            List<String> templateLines = currentTemplate.getLines();
+            List<String> targetLines = target.getLines();
+            
+            int templateLength = templateLines.size();
+            int targetLength = targetLines.size();
+            for (int i = 0; i < targetLength; i++){
+                if (targetLines.get(i).equals(templateLines.get(0))){
+                    for (int j = 0; j < templateLength; j++)
+                    {
+                        if (targetLength < i + templateLength ){
+                            break;
+                        }
+                        if (!targetLines.get(i+j).equals(templateLines.get(j))){
+                            break;
+                        }
+                        if (j == templateLength - 1 && targetLines.get(i+j).equals(templateLines.get(j))){
+                            return currentTemplate.getID();
+                        }
+                    }
+                }
+            }
+        }       
+        return -1;
     }
     
     
