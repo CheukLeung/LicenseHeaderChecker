@@ -13,28 +13,71 @@ and open the template in the editor.
             <h1>License Header Checker Results</h1>
             <h2>${%Trend}</h2>
             <img src="graph" width="500px" height="200px" />
+            <h2>${%Checked Header}</h2>
+            <table class="pane sortable">
+                <tr>
+                    <td class="pane-header">Header</td>              
+                </tr>
+                <tbody>
+                    <j:forEach var="elt" items="${it.licenseTemplates}">
+                        <tr>
+                            <td class="pane">
+                                <div class='healthReport' onmouseover="turnHover()" onmouseout="turnOffHover()">
+                                    ${elt.filename}
+                                    <div class='healthReportDetails' style="background-color: #f0f0f0">
+                                        <div>Raw file:</div>
+                                        <pre>
+                                            ${elt.getRawLinesString()}
+                                        </pre>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    </j:forEach>
+                </tbody>
+            </table>
+            
+            <h2>${%Detailed Checking Results}</h2>
             <table class="pane sortable">
                 <tr>
                     <td class="pane-header">Check</td>
-                    <td class="pane-header">Source File</td>  
-                    <td class="pane-header">Matched Template</td>               
+                    <td class="pane-header">Source File</td> 
+                    <td class="pane-header">Matched Header</td>               
                 </tr>
                 <tbody>
                     <j:forEach var="elt" items="${it.sourceFiles}">
                         <tr>
                             <td class="pane">
                                 <j:if test="${elt.isMatched()}">
-                                    True
+                                    <font color="blue">PASS</font>
                                 </j:if>
                                 <j:if test="${!elt.isMatched()}">
-                                    False
+                                    <font color="red">FAIL</font>
                                 </j:if>
                             </td>
                             <td class="pane">
-                                ${elt.filename}
+                                <div class='healthReport' onmouseover="turnHover()" onmouseout="turnOffHover()">
+                                    ${elt.filename}
+                                    <div class='healthReportDetails' style="background-color: #f0f0f0">
+                                        <div>Raw file:</div>
+                                        <pre>
+                                            ${elt.getRawLinesString()}
+                                        </pre>
+                                    </div>
+                                </div>
                             </td>
                             <td class="pane">
-                                ${it.licenseTemplates.get(elt.matchedTemplateID).filename}
+                                <j:if test="${elt.isMatched()}">
+                                    <div class='healthReport' onmouseover="turnHover()" onmouseout="turnOffHover()">
+                                    ${it.licenseTemplates.get(elt.matchedTemplateID).filename}
+                                    <div class='healthReportDetails' style="background-color: #f0f0f0">
+                                        <div>Raw file:</div>
+                                        <pre>
+                                            ${it.licenseTemplates.get(elt.matchedTemplateID).getRawLinesString()}
+                                        </pre>
+                                    </div>
+                                </div>
+                                </j:if>                  
                             </td>
                         </tr>
                     </j:forEach>
@@ -42,4 +85,15 @@ and open the template in the editor.
             </table>
         </l:main-panel>
     </l:layout>
+    
+    <script>
+    function turnHover()
+    {
+        this.className='healthReport hover';return true;
+    }
+    function turnOffHover()
+    {
+        this.className='healthReport';return true;
+    }
+    </script>
 </j:jelly>

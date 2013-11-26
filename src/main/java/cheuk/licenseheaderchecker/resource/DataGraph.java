@@ -34,6 +34,7 @@ public class DataGraph extends Graph {
     private static final Color YELLOW = new Color(0xCC, 0xCC, 0x00);
     private static final Color GRAY   = new Color(0x30, 0x30, 0x30);
     
+    
     private final String yLabel;
     private final CategoryDataset categoryDataset;
     
@@ -94,7 +95,7 @@ public class DataGraph extends Graph {
         //ColorPalette.apply(renderer);
         plot.setRenderer(renderer);
         renderer.setSeriesPaint(2, RED);
-        renderer.setSeriesPaint(1, VIOLET);
+        renderer.setSeriesPaint(1, GRAY);
         renderer.setSeriesPaint(0, YELLOW);
 
         // crop extra space around the graph

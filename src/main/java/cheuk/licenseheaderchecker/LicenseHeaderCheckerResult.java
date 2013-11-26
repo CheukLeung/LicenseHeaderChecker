@@ -27,12 +27,13 @@ public class LicenseHeaderCheckerResult implements Serializable{
     private AbstractBuild<?, ?> owner;
     private List<LicenseHeaderCheckerFile> licenseTemplates;
     private List<LicenseHeaderCheckerFile> sourceFiles;
+    private double matchedRate;
 
     public LicenseHeaderCheckerResult(AbstractBuild owner, List<LicenseHeaderCheckerFile> licenseTemplates, List<LicenseHeaderCheckerFile> sourceFiles) {
         this.owner = owner;
         this.licenseTemplates = licenseTemplates;
         this.sourceFiles = sourceFiles;
-        
+        calcMatchedRate();
     }
     
     public LicenseHeaderCheckerResult getPreviousresult(){
@@ -65,7 +66,11 @@ public class LicenseHeaderCheckerResult implements Serializable{
         return sourceFiles;
     }
     
-    public double getNumberOfUnmatchedFiles() {
+    public double getMatchedRate() {
+        return matchedRate;
+    }
+    
+    private void calcMatchedRate(){
         int i = 0;
         Iterator<LicenseHeaderCheckerFile> it = sourceFiles.iterator();
         while (it.hasNext())
@@ -74,7 +79,7 @@ public class LicenseHeaderCheckerResult implements Serializable{
                 i++;
             }
         }
-        return i / LicenseHeaderCheckerFile.getSize();
+        matchedRate = 100 * i / sourceFiles.size();
     }
     
     public void doGraph(StaplerRequest req, StaplerResponse rsp) throws IOException {

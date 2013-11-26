@@ -60,7 +60,7 @@ public class LicenseHeaderCheckerBuildAction extends Actionable implements Actio
         for (LicenseHeaderCheckerBuildAction a = this; a != null; a = a.getPreviousResult()){
             ChartUtil.NumberOnlyBuildLabel label = new ChartUtil.NumberOnlyBuildLabel(a.owner);
             LicenseHeaderCheckerResult aResult = a.getResult();
-            dsb.add(aResult.getNumberOfUnmatchedFiles(), "Percentage of files having license header", label);
+            dsb.add(aResult.getMatchedRate(), "Percentage of files passed", label);
         }
         
         return dsb;
@@ -78,7 +78,7 @@ public class LicenseHeaderCheckerBuildAction extends Actionable implements Actio
         }
         
         Graph g = new DataGraph(getOwner(), getDataSetBuilder().build(),
-                "Percentage of files having license header", 500, 200);
+                "Percentage of files passed", 500, 200);
         g.doPng(req, rsp);
     }
     

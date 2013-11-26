@@ -9,6 +9,6 @@ and open the template in the editor.
 <j:jelly xmlns:j="jelly:core"  xmlns:d="jelly:define" xmlns:i="jelly:fmt" xmlns:l="/lib/layout" xmlns:t="/lib/hudson">
     <t:summary icon="clipboard.png">
         <div><a href="LicenseHeaderCheckerResult/">${%License Header Checker Results}</a></div>
-        ${it.target.sourceFiles.get(0).getNumberOfUnmatchedFiles()} warning(s) are found.
+        ${it.target.matchedRate}% files have license header.
     </t:summary>
 </j:jelly>
