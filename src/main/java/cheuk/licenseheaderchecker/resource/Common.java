@@ -18,6 +18,13 @@ import java.util.logging.Logger;
  * @author cheuk
  */
 public class Common {
+    static public String sourceDir;
+    static public String licenseDir;
+    static public boolean failBuild; 
+    static public boolean ignoreHidden; 
+    static public boolean specificTypes;
+    static public String fileTypes;
+    
     static public List<FilePath> locateFiles(FilePath rootDir){
         List<FilePath> fileList;
         fileList = new ArrayList<FilePath>();

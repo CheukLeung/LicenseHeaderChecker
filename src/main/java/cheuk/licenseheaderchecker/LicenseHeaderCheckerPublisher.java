@@ -4,6 +4,7 @@
  */
 package cheuk.licenseheaderchecker;
 
+import cheuk.licenseheaderchecker.resource.Common;
 import hudson.Extension;
 import hudson.Launcher;
 import hudson.model.AbstractBuild;
@@ -26,11 +27,25 @@ public class LicenseHeaderCheckerPublisher extends Publisher{
     
     public String sourceDir;
     public String licenseDir;
+    public boolean failBuild; 
+    public boolean ignoreHidden;
+    public boolean specificTypes;
+    public String fileTypes;
     
     @DataBoundConstructor
-    public LicenseHeaderCheckerPublisher(String sourceDir, String licenseDir) {
+    public LicenseHeaderCheckerPublisher(String sourceDir, String licenseDir, boolean failBuild, boolean ignoreHidden, boolean specificTypes, String fileTypes) {
         this.sourceDir = sourceDir;
         this.licenseDir = licenseDir;
+        this.failBuild = failBuild;
+        this.ignoreHidden = ignoreHidden;
+        this.specificTypes = specificTypes;
+        this.fileTypes = fileTypes;
+        Common.sourceDir = sourceDir;
+        Common.licenseDir = licenseDir;
+        Common.failBuild = failBuild;
+        Common.ignoreHidden = ignoreHidden;
+        Common.specificTypes = specificTypes;
+        Common.fileTypes = fileTypes;
     }
     
     public BuildStepMonitor getRequiredMonitorService() {
@@ -41,10 +56,14 @@ public class LicenseHeaderCheckerPublisher extends Publisher{
     @Override
     @SuppressWarnings("null")
     public boolean perform (AbstractBuild build, Launcher launcher, BuildListener listener){
-        listener.getLogger().println("Running License Header Checker  result reporter");
+        listener.getLogger().println("Running License Header Checker");
         LicenseHeaderCheckerFile.initialize();
-        List<LicenseHeaderCheckerFile> licenseTemplates = LicenseHeaderCheckerParser.doParse(build.getWorkspace(), build.getWorkspace().child(licenseDir));
-        List<LicenseHeaderCheckerFile> sourceFiles = LicenseHeaderCheckerParser.doParse(build.getWorkspace(), build.getWorkspace().child(sourceDir));
+        List<LicenseHeaderCheckerFile> licenseTemplates = LicenseHeaderCheckerParser.doParse(build.getWorkspace(), build.getWorkspace().child(licenseDir), true);
+        if (licenseTemplates.isEmpty()){
+            listener.getLogger().println("No license header is found.");
+            return false;
+        }
+        List<LicenseHeaderCheckerFile> sourceFiles = LicenseHeaderCheckerParser.doParse(build.getWorkspace(), build.getWorkspace().child(sourceDir), false);
         Iterator<LicenseHeaderCheckerFile> it = sourceFiles.iterator();
         while (it.hasNext()){
             LicenseHeaderCheckerFile currentFile = it.next();
@@ -58,6 +77,9 @@ public class LicenseHeaderCheckerPublisher extends Publisher{
         final LicenseHeaderCheckerBuildAction action = LicenseHeaderCheckerBuildAction.load(build, result);
         build.getActions().add(action);
         
+        if (failBuild && result.getMatchedRate() < 100){
+            return false;
+        }
         return true;
     }
     

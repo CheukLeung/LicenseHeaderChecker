@@ -25,7 +25,7 @@ import java.util.logging.Logger;
  */
 public class LicenseHeaderCheckerParser {
 
-    public static List<LicenseHeaderCheckerFile> doParse(FilePath workspace, FilePath root) {
+    public static List<LicenseHeaderCheckerFile> doParse(FilePath workspace, FilePath root, boolean isHeader) {
         List<FilePath> targetFile = Common.locateFiles(root);
         if (targetFile.isEmpty()){
             return null;
@@ -35,9 +35,26 @@ public class LicenseHeaderCheckerParser {
         Iterator<FilePath> it = targetFile.iterator();
         while (it.hasNext()){
             FilePath element = it.next();
-            LicenseHeaderCheckerFile currentFile = parseFile(element);
-            currentFile.setFilename(element.getRemote().substring(workspace.getRemote().length()+1));
-            licenseHeaderCheckerFiles.add(currentFile);
+            Boolean include = !Common.specificTypes;
+            if (Common.specificTypes){
+                String[] fileTypes = Common.fileTypes.split(" ");
+                String elementType = element.getName().substring(element.getBaseName().length());
+                for (int i = 0; i < fileTypes.length; i++)
+                {
+                    include = include || elementType.equals(fileTypes[i]);
+                }
+            }
+            if (Common.ignoreHidden)
+            {
+                include = include && element.getName().charAt(0) != '.';
+            }
+            include = include || isHeader;
+            System.out.println(element.getName() + ":" + include);
+            if (include){
+                LicenseHeaderCheckerFile currentFile = parseFile(element);
+                currentFile.setFilename(element.getRemote().substring(workspace.getRemote().length()+1));
+                licenseHeaderCheckerFiles.add(currentFile);
+            }
         }
         return licenseHeaderCheckerFiles;
     }
@@ -50,7 +67,9 @@ public class LicenseHeaderCheckerParser {
             br = new BufferedReader(new FileReader(file));
             String line = br.readLine();
             LicenseHeaderCheckerFile currentFile = new LicenseHeaderCheckerFile();
+            System.out.println( fileName + ":" + line);
             while (line != null) {
+                System.out.println(line);
                 currentFile.addRawLine(line);
                 currentFile.addLine(line.trim());
                 line = br.readLine();
@@ -75,6 +94,11 @@ public class LicenseHeaderCheckerParser {
             
             int templateLength = templateLines.size();
             int targetLength = targetLines.size();
+            System.out.println(target.getFilename());
+            System.out.println(currentTemplate.getFilename());
+            if (templateLength == 0){
+                continue;
+            }
             for (int i = 0; i < targetLength; i++){
                 if (targetLines.get(i).equals(templateLines.get(0))){
                     for (int j = 0; j < templateLength; j++)

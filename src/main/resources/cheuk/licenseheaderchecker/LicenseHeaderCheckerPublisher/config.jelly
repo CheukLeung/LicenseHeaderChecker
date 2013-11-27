@@ -17,4 +17,17 @@
         <f:textbox default="./"/>
         Please specify the directory of the license header templates, if you have more than one templates, put them all in one directory and specify the directory instead
     </f:entry> 
+    <f:entry title="Fail build if not all the source files have header" field="failBuild">
+        <f:checkbox name="failBuild" />
+    </f:entry>
+    <f:entry title="Ignore hidden files (file names begin with '.')" field="ignoreHidden">
+        <f:checkbox name="ignoreHidden"/>
+    </f:entry>
+    <f:entry title="Only check files with these types" field="specificTypes">
+        <f:checkbox name="specificTypes"/>
+    </f:entry>
+    <f:entry>
+        <f:textbox field="fileTypes" default=".c .cpp .java .py .rb .pl" />
+        Sepecify the file types to be tested, please separate them with a space. Example: .c .cpp .java .py .rb .pl
+    </f:entry>
 </j:jelly>

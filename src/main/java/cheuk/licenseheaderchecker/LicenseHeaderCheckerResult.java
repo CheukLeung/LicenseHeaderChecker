@@ -79,7 +79,14 @@ public class LicenseHeaderCheckerResult implements Serializable{
                 i++;
             }
         }
-        matchedRate = 100 * i / sourceFiles.size();
+        if (sourceFiles.size() > 0)
+        {
+            matchedRate = 100 * i / sourceFiles.size();
+        }
+        else
+        {
+            matchedRate = 100;
+        }
     }
     
     public void doGraph(StaplerRequest req, StaplerResponse rsp) throws IOException {

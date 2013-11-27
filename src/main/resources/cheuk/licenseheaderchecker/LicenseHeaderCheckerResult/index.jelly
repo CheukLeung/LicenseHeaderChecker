@@ -7,14 +7,25 @@ and open the template in the editor.
 <?jelly escape-by-default='true'?>
 <!-- TODO add taglibs such as: xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form" -->
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:i="jelly:fmt" xmlns:l="/lib/layout">
+    <style type="text/css">
+        #content > div {
+            display: none;
+        }
+
+        #content > div:target {
+            display: block;
+        }
+        .hidden { display:none; }
+        .unhidden { visibility: visible; }
+    </style>
     <l:layout norefresh="true">
         <st:include it="${it.owner}" page="sidepanel.jelly"/>
         <l:main-panel>
             <h1>License Header Checker Results</h1>
             <h2>${%Trend}</h2>
             <img src="graph" width="500px" height="200px" />
-            <h2>${%Checked Header}</h2>
-            <table class="pane sortable">
+            <h2>${%Checked Headers}</h2>
+            <table class="pane">
                 <tr>
                     <td class="pane-header">Header</td>              
                 </tr>
@@ -23,14 +34,20 @@ and open the template in the editor.
                         <tr>
                             <td class="pane">
                                 <div class='healthReport' onmouseover="turnHover()" onmouseout="turnOffHover()">
-                                    ${elt.filename}
-                                    <div class='healthReportDetails' style="background-color: #f0f0f0">
-                                        <div>Raw file:</div>
-                                        <pre>
-                                            ${elt.getRawLinesString()}
-                                        </pre>
-                                    </div>
+                                    
+                                    <a href="javascript:unhide('license${elt.getID()}');">
+                                        ${elt.filename}
+                                    </a>
                                 </div>
+                            </td>
+                        </tr>
+                        <tr id="license${elt.getID()}" style="height:0px" class="hidden"> 
+                            <td class="pane" style="background:#FFFFCC">
+                                <pre>
+                                    <code class="ruby">
+                                    ${elt.getRawLinesString()}
+                                    </code>
+                                </pre>
                             </td>
                         </tr>
                     </j:forEach>
@@ -38,7 +55,7 @@ and open the template in the editor.
             </table>
             
             <h2>${%Detailed Checking Results}</h2>
-            <table class="pane sortable">
+            <table class="pane">
                 <tr>
                     <td class="pane-header">Check</td>
                     <td class="pane-header">Source File</td> 
@@ -56,30 +73,17 @@ and open the template in the editor.
                                 </j:if>
                             </td>
                             <td class="pane">
-                                <div class='healthReport' onmouseover="turnHover()" onmouseout="turnOffHover()">
+                                <div class='healthReport' onmouseover="turnHover()" onmouseout="turnOffHover()">            
                                     ${elt.filename}
-                                    <div class='healthReportDetails' style="background-color: #f0f0f0">
-                                        <div>Raw file:</div>
-                                        <pre>
-                                            ${elt.getRawLinesString()}
-                                        </pre>
-                                    </div>
                                 </div>
                             </td>
                             <td class="pane">
                                 <j:if test="${elt.isMatched()}">
-                                    <div class='healthReport' onmouseover="turnHover()" onmouseout="turnOffHover()">
                                     ${it.licenseTemplates.get(elt.matchedTemplateID).filename}
-                                    <div class='healthReportDetails' style="background-color: #f0f0f0">
-                                        <div>Raw file:</div>
-                                        <pre>
-                                            ${it.licenseTemplates.get(elt.matchedTemplateID).getRawLinesString()}
-                                        </pre>
-                                    </div>
-                                </div>
                                 </j:if>                  
                             </td>
                         </tr>
+                        
                     </j:forEach>
                 </tbody>
             </table>
@@ -95,5 +99,13 @@ and open the template in the editor.
     {
         this.className='healthReport';return true;
     }
+    </script>
+    <script type="text/javascript">
+        function unhide(divID) {
+            var item = document.getElementById(divID);
+            if (item) {
+              item.className=(item.className=='hidden')?'unhidden':'hidden';
+            }
+        }
     </script>
 </j:jelly>
