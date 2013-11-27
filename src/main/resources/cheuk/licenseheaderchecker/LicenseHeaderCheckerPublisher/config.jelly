@@ -27,7 +27,7 @@
         <f:checkbox name="specificTypes"/>
     </f:entry>
     <f:entry>
-        <f:textbox field="fileTypes" default=".c .cpp .java .py .rb .pl" />
-        Sepecify the file types to be tested, please separate them with a space. Example: .c .cpp .java .py .rb .pl
+        <f:textbox field="fileTypes" default=".c .h .cpp .hpp .java .py .rb .pl" />
+        Sepecify the file types to be tested, please separate them with a space. Example: .c .h .cpp .hpp .java .py .rb .pl
     </f:entry>
 </j:jelly>

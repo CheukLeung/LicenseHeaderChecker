@@ -49,7 +49,6 @@ public class LicenseHeaderCheckerParser {
                 include = include && element.getName().charAt(0) != '.';
             }
             include = include || isHeader;
-            System.out.println(element.getName() + ":" + include);
             if (include){
                 LicenseHeaderCheckerFile currentFile = parseFile(element);
                 currentFile.setFilename(element.getRemote().substring(workspace.getRemote().length()+1));
@@ -67,9 +66,7 @@ public class LicenseHeaderCheckerParser {
             br = new BufferedReader(new FileReader(file));
             String line = br.readLine();
             LicenseHeaderCheckerFile currentFile = new LicenseHeaderCheckerFile();
-            System.out.println( fileName + ":" + line);
             while (line != null) {
-                System.out.println(line);
                 currentFile.addRawLine(line);
                 currentFile.addLine(line.trim());
                 line = br.readLine();
@@ -94,8 +91,6 @@ public class LicenseHeaderCheckerParser {
             
             int templateLength = templateLines.size();
             int targetLength = targetLines.size();
-            System.out.println(target.getFilename());
-            System.out.println(currentTemplate.getFilename());
             if (templateLength == 0){
                 continue;
             }

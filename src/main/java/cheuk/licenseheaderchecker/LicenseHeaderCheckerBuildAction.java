@@ -33,7 +33,7 @@ public class LicenseHeaderCheckerBuildAction extends Actionable implements Actio
     static public LicenseHeaderCheckerBuildAction getPreviousResult(AbstractBuild<?, ?> start) {
         AbstractBuild<?, ?> b = start;
         while (true) {
-            b = b.getPreviousNotFailedBuild();
+            b = b.getPreviousCompletedBuild();
             if (b == null){
                 return null;
             }

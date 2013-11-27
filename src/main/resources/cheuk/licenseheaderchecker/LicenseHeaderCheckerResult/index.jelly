@@ -55,7 +55,7 @@ and open the template in the editor.
             </table>
             
             <h2>${%Detailed Checking Results}</h2>
-            <table class="pane">
+            <table class="pane sortable">
                 <tr>
                     <td class="pane-header">Check</td>
                     <td class="pane-header">Source File</td> 

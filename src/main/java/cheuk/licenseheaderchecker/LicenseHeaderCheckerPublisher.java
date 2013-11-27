@@ -76,11 +76,7 @@ public class LicenseHeaderCheckerPublisher extends Publisher{
         final LicenseHeaderCheckerResult result = new LicenseHeaderCheckerResult(build, licenseTemplates, sourceFiles);
         final LicenseHeaderCheckerBuildAction action = LicenseHeaderCheckerBuildAction.load(build, result);
         build.getActions().add(action);
-        
-        if (failBuild && result.getMatchedRate() < 100){
-            return false;
-        }
-        return true;
+        return !failBuild || result.getMatchedRate() >= 100;
     }
     
     @Override
